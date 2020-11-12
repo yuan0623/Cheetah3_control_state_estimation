@@ -307,6 +307,85 @@ def Cheetah3KalmanFilter(dt,xhat,u,z_measurement,P,contacts):
     #pdb.set_trace()
 
     return xhat,P
+
+def Cheetah3KalmanFilterPosition(dt,xhat,u,z_measurement,P,contacts):
+    # Set A matrix
+    A = np.identity(18)
+    A[0:3,3:6] = dt * np.identity(3)
+    # Set B matrix
+    B = np.zeros([18,3])
+    B[3:6,0:3] = np.identity(3) * dt
+    # Set C matrix
+    C = np.zeros([15,18])
+    C[0:3,0:3]=np.eye(3)
+    C[3:6,0:3]=-np.eye(3)
+    C[6:9,0:3]=-np.eye(3)
+    C[9:12,0:3]=-np.eye(3)
+    C[12:15,0:3]=-np.eye(3)
+
+    C[3:6,6:9]=np.eye(3)
+    C[6:9,9:12]=np.eye(3)
+    C[9:12,12:15]=np.eye(3)
+    C[12:15,15:18]=np.eye(3)
+    # Some noise parameters
+    scale = 10000
+    process_noise_pimu = 0.02
+    process_noise_vimu = 0.02
+
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.01
+    # Set process covariance
+    Q = np.identity(18)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    # Set measurement covariance
+    R = np.identity(15)
+    R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    # Kalman filter estimatiion
+    #########################################################
+    # predict
+    xhat = np.dot(A,xhat) + np.dot(B,u)
+    P=np.dot(A,np.dot(P,A.T))+Q
+    #########################################################
+    #pdb.set_trace()
+    #######################
+    # update
+    y = z_measurement-np.dot(C,xhat)
+    S=np.dot(C,np.dot(P,C.T))+R
+    K = np.dot(P,np.dot(C.T,np.linalg.inv(S)))
+    xhat = xhat + np.dot(K,y)
+    #print(x_hat)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,C)),P)
+    #########################
+    #pdb.set_trace()
+
+    return xhat,P
 def state_estimation_god_view_relative(dt,xhat,u,z_measurement,P):
     # Set A matrix
     A = np.identity(18)

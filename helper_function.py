@@ -1,535 +1,854 @@
-import numpy as np
+#import numpy as np
+from scipy.spatial.transform import Rotation as Rot
+from help_function_symbolic import *
+import pdb
+def getAcceReading(acc,RotM):
+    f_noise = 0.001
+    gravity = np.array([0,0,-9.8])
+    f = np.dot(RotM.T,(acc-gravity))#+np.random.rand(3)*f_noise
+    return f
+def getGyroReading(current_base_ang_velocity,RotM):
+    omega_noise = 0.002
+    omega = np.dot(RotM.T,current_base_ang_velocity)
+    return omega
+def getAcceReadingNoise(acc,RotM):
+    f_noise = 0.04
+    gravity = np.array([0,0,-9.8])
+    f = np.dot(RotM.T,(acc-gravity))+np.random.rand(3)*f_noise
+    return f
+def getGyroReadingNoise(current_base_ang_velocity,RotM):
+    omega_noise = 0.002
+    omega = np.dot(RotM.T,current_base_ang_velocity)+np.random.rand(3)*omega_noise
+    return omega
+def quaternion2RotM(q_):
+    q = np.zeros(4)
+    q[0] = q_[3]
+    q[1] = q_[0]
+    q[2] = q_[1]
+    q[3] = q_[2]
+    R = np.zeros([3,3])
+    R[0,0]=1-2*(q[2]*q[2]+q[3]*q[3])
+    R[0,1] = 2*(q[1]*q[2]-q[3]*q[0])
+    R[0,2] = 2*(q[1]*q[3]+q[2]*q[0])
 
-def feetPosition(var1):
-    t7 = np.cos(var1[5]);
-    t13 = np.sin(var1[3]);
-    t14 = np.sin(var1[4]);
-    t15 = t7*t13*t14;
-    t16 = np.cos(var1[3]);
-    t18 = np.sin(var1[5]);
-    t19 = -1.*t16*t18;
-    t20 = t15 + t19;
-    t5 = np.cos(var1[4]);
-    t25 = np.sin(var1[9]);
-    t22 = np.cos(var1[9]);
-    t27 = t16*t7*t14;
-    t28 = t13*t18;
-    t30 = t27 + t28;
-    t35 = t5*t7;
-    t36 = 0. + t35;
-    t37 = np.sin(var1[10]);
-    t38 = t36*t37;
-    t39 = np.cos(var1[10]);
-    t40 = -1.*t25;
-    t41 = 0. + t40;
-    t42 = t41*t20;
-    t43 = t22*t30;
-    t44 = 0. + t42 + t43;
-    t45 = t39*t44;
-    t46 = 0. + t38 + t45;
-    t23 = 0. + t22;
-    t61 = t16*t7;
-    t62 = t13*t14*t18;
-    t63 = t61 + t62;
-    t66 = -1.*t7*t13;
-    t67 = t16*t14*t18;
-    t68 = t66 + t67;
-    t48 = np.cos(var1[11]);
-    t49 = 0. + t48;
-    t73 = t5*t18;
-    t74 = 0. + t73;
-    t75 = t37*t74;
-    t76 = t22*t68;
-    t77 = t41*t63;
-    t78 = 0. + t76 + t77;
-    t79 = t39*t78;
-    t80 = 0. + t75 + t79;
-    t51 = np.sin(var1[11]);
-    t96 = t22*t16*t5;
-    t97 = t5*t41*t13;
-    t98 = 0. + t96 + t97;
-    t100 = -1.*t14;
-    t101 = 0. + t100;
-    t106 = t39*t98;
-    t107 = t37*t101;
-    t108 = 0. + t106 + t107;
-    t8 = 0.21935*t5*t7;
-    t119 = np.cos(var1[6]);
-    t122 = np.sin(var1[6]);
-    t126 = np.cos(var1[7]);
-    t127 = t119*t30;
-    t128 = -1.*t122;
-    t129 = 0. + t128;
-    t130 = t20*t129;
-    t131 = 0. + t127 + t130;
-    t132 = t126*t131;
-    t133 = np.sin(var1[7]);
-    t134 = t36*t133;
-    t135 = 0. + t132 + t134;
-    t60 = 0.21935*t5*t18;
-    t120 = 0. + t119;
-    t138 = np.cos(var1[8]);
-    t139 = 0. + t138;
-    t154 = t119*t68;
-    t155 = t63*t129;
-    t156 = 0. + t154 + t155;
-    t158 = t126*t156;
-    t159 = t74*t133;
-    t160 = 0. + t158 + t159;
-    t144 = np.sin(var1[8]);
-    t116 = -0.21935*t14;
-    t176 = t16*t5*t119;
-    t177 = t5*t13*t129;
-    t179 = 0. + t176 + t177;
-    t180 = t126*t179;
-    t182 = t101*t133;
-    t183 = 0. + t180 + t182;
-    t21 = 0.0875*t20;
-    t198 = np.sin(var1[15]);
-    t195 = np.cos(var1[15]);
-    t202 = np.sin(var1[16]);
-    t203 = t36*t202;
-    t204 = np.cos(var1[16]);
-    t205 = -1.*t198;
-    t206 = 0. + t205;
-    t207 = t206*t20;
-    t209 = t195*t30;
-    t210 = 0. + t207 + t209;
-    t211 = t204*t210;
-    t212 = 0. + t203 + t211;
-    t64 = 0.0875*t63;
-    t196 = 0. + t195;
-    t214 = np.cos(var1[17]);
-    t215 = 0. + t214;
-    t231 = t202*t74;
-    t232 = t195*t68;
-    t233 = t206*t63;
-    t234 = 0. + t232 + t233;
-    t235 = t204*t234;
-    t236 = 0. + t231 + t235;
-    t217 = np.sin(var1[17]);
-    t91 = 0.0875*t5*t13;
-    t253 = t195*t16*t5;
-    t255 = t5*t206*t13;
-    t256 = 0. + t253 + t255;
-    t261 = t204*t256;
-    t262 = t202*t101;
-    t263 = 0. + t261 + t262;
-    t194 = -0.21935*t5*t7;
-    t118 = -0.0875*t20;
-    t273 = np.sin(var1[12]);
-    t270 = np.cos(var1[12]);
-    t278 = np.sin(var1[13]);
-    t279 = t36*t278;
-    t280 = np.cos(var1[13]);
-    t281 = -1.*t273;
-    t282 = 0. + t281;
-    t283 = t282*t20;
-    t284 = t270*t30;
-    t285 = 0. + t283 + t284;
-    t286 = t280*t285;
-    t287 = 0. + t279 + t286;
-    t225 = -0.21935*t5*t18;
-    t149 = -0.0875*t63;
-    t271 = 0. + t270;
-    t289 = np.cos(var1[14]);
-    t290 = 0. + t289;
-    t305 = t278*t74;
-    t306 = t270*t68;
-    t307 = t282*t63;
-    t308 = 0. + t306 + t307;
-    t309 = t280*t308;
-    t310 = 0. + t305 + t309;
-    t292 = np.sin(var1[14]);
-    t170 = -0.0875*t5*t13;
-    t324 = t270*t16*t5;
-    t325 = t5*t282*t13;
-    t326 = 0. + t324 + t325;
-    t331 = t280*t326;
-    t332 = t278*t101;
-    t333 = 0. + t331 + t332;
-    t268 = 0.21935*t14;
-    p_output1 = np.zeros(12)
-    p_output1[0]=t21 + 0.037*(0. + t20*t23 + t25*t30) - 0.25*t46 - 0.27*(t46*t49 + (0. + t36*t39 - 1.*t37*t44)*t51) + t8 + var1[0];
-    p_output1[1]=t60 + t64 + 0.037*(0. + t23*t63 + t25*t68) - 0.25*t80 - 0.27*(t51*(0. + t39*t74 - 1.*t37*t78) + t49*t80) + var1[1];
-    p_output1[2]=-0.25*t108 + t116 + 0.037*(0. + t13*t23*t5 + t16*t25*t5) + t91 - 0.27*(t108*t49 + t51*(0. + t101*t39 - 1.*t37*t98)) + var1[2];
-    p_output1[3]=t118 - 0.25*t135 - 0.037*(0. + t120*t20 + t122*t30) - 0.27*(t135*t139 + t144*(0. - 1.*t131*t133 + t126*t36)) + t8 + var1[0];
-    p_output1[4]=t149 - 0.25*t160 + t60 - 0.037*(0. + t120*t63 + t122*t68) - 0.27*(t139*t160 + t144*(0. - 1.*t133*t156 + t126*t74)) + var1[1];
-    p_output1[5]=t116 + t170 - 0.25*t183 - 0.27*(t144*(0. + t101*t126 - 1.*t133*t179) + t139*t183) - 0.037*(0. + t120*t13*t5 + t122*t16*t5) + var1[2];
-    p_output1[6]=t194 + t21 - 0.25*t212 + 0.037*(0. + t196*t20 + t198*t30) - 0.27*(t212*t215 + t217*(0. - 1.*t202*t210 + t204*t36)) + var1[0];
-    p_output1[7]=t225 - 0.25*t236 + t64 + 0.037*(0. + t196*t63 + t198*t68) - 0.27*(t215*t236 + t217*(0. - 1.*t202*t234 + t204*t74)) + var1[1];
-    p_output1[8]=-0.25*t263 - 0.27*(t217*(0. + t101*t204 - 1.*t202*t256) + t215*t263) + t268 + 0.037*(0. + t13*t196*t5 + t16*t198*t5) + t91 + var1[2];
-    p_output1[9]=t118 + t194 - 0.25*t287 - 0.037*(0. + t20*t271 + t273*t30) - 0.27*(t287*t290 + t292*(0. - 1.*t278*t285 + t280*t36)) + var1[0];
-    p_output1[10]=t149 + t225 - 0.25*t310 - 0.037*(0. + t271*t63 + t273*t68) - 0.27*(t290*t310 + t292*(0. - 1.*t278*t308 + t280*t74)) + var1[1];
-    p_output1[11]=t170 + t268 - 0.25*t333 - 0.27*(t292*(0. + t101*t280 - 1.*t278*t326) + t290*t333) - 0.037*(0. + t13*t271*t5 + t16*t273*t5) + var1[2];
-    return p_output1
-def feetVelocity(var1,var2):
-    t32 = np.cos(var1[4]);
-    t48 = np.cos(var1[5]);
-    t51 = np.sin(var1[3]);
-    t72 = np.cos(var1[9]);
-    t60 = np.cos(var1[3]);
-    t62 = np.sin(var1[9]);
-    t88 = np.sin(var1[4]);
-    t118 = np.sin(var1[10]);
-    t95 = t72*t60*t32*t48;
-    t96 = -1.*t62;
-    t97 = 0. + t96;
-    t102 = t32*t48*t97*t51;
-    t109 = t95 + t102;
-    t94 = np.cos(var1[10]);
-    t112 = t94*t109;
-    t120 = -1.*t48*t118*t88;
-    t125 = t112 + t120;
-    t127 = np.sin(var1[11]);
-    t158 = np.sin(var1[5]);
-    t138 = np.cos(var1[11]);
-    t151 = t32*t48;
-    t153 = 0. + t151;
-    t155 = t48*t51*t88;
-    t159 = -1.*t60*t158;
-    t160 = t155 + t159;
-    t163 = t97*t160;
-    t168 = t60*t48*t88;
-    t177 = t51*t158;
-    t186 = t168 + t177;
-    t188 = t72*t186;
-    t189 = 0. + t163 + t188;
-    t73 = 0. + t72;
-    t215 = -1.*t48*t51*t88;
-    t218 = t60*t158;
-    t219 = t215 + t218;
-    t139 = 0. + t138;
-    t228 = t72*t219;
-    t230 = t97*t186;
-    t233 = t228 + t230;
-    t259 = -1.*t72*t160;
-    t260 = -1.*t62*t186;
-    t262 = t259 + t260;
-    t195 = t94*t153;
-    t200 = -1.*t118*t189;
-    t286 = t195 + t200;
-    t306 = -1.*t60*t48;
-    t307 = -1.*t51*t88*t158;
-    t309 = t306 + t307;
-    t313 = t48*t51;
-    t317 = -1.*t60*t88*t158;
-    t321 = t313 + t317;
-    t328 = -1.*t32*t118*t158;
-    t329 = t72*t321;
-    t330 = t97*t309;
-    t331 = t329 + t330;
-    t333 = t94*t331;
-    t339 = t328 + t333;
-    t370 = -1.*t118*t88*t158;
-    t371 = t72*t60*t32*t158;
-    t372 = t32*t97*t51*t158;
-    t373 = t371 + t372;
-    t374 = t94*t373;
-    t376 = t370 + t374;
-    t397 = -1.*t48*t51;
-    t399 = t60*t88*t158;
-    t400 = t397 + t399;
-    t403 = t97*t400;
-    t404 = t72*t309;
-    t405 = t403 + t404;
-    t424 = t60*t48;
-    t425 = t51*t88*t158;
-    t426 = t424 + t425;
-    t423 = -1.*t62*t400;
-    t428 = -1.*t72*t426;
-    t429 = t423 + t428;
-    t432 = t72*t400;
-    t447 = t32*t158;
-    t449 = 0. + t447;
-    t451 = t97*t426;
-    t452 = 0. + t432 + t451;
-    t475 = t32*t48*t118;
-    t478 = t163 + t188;
-    t479 = t94*t478;
-    t480 = t475 + t479;
-    t462 = t94*t449;
-    t463 = -1.*t118*t452;
-    t497 = t462 + t463;
-    t516 = t60*t32*t97;
-    t517 = -1.*t72*t32*t51;
-    t518 = t516 + t517;
-    t521 = -1.*t32*t62*t51;
-    t535 = -1.*t60*t32*t62;
-    t536 = t535 + t517;
-    t540 = t72*t60*t32;
-    t549 = t32*t97*t51;
-    t550 = 0. + t540 + t549;
-    t554 = -1.*t88;
-    t556 = 0. + t554;
-    t553 = -1.*t118*t550;
-    t559 = t94*t556;
-    t562 = t553 + t559;
-    t594 = -1.*t32*t118;
-    t595 = -1.*t72*t60*t88;
-    t596 = -1.*t97*t51*t88;
-    t597 = t595 + t596;
-    t599 = t94*t597;
-    t601 = t594 + t599;
-    t619 = np.cos(var1[7]);
-    t622 = np.cos(var1[6]);
-    t624 = t622*t186;
-    t625 = np.sin(var1[6]);
-    t627 = -1.*t625;
-    t630 = 0. + t627;
-    t631 = t160*t630;
-    t632 = 0. + t624 + t631;
-    t633 = np.sin(var1[7]);
-    t617 = np.cos(var1[8]);
-    t650 = t622*t219;
-    t652 = t186*t630;
-    t653 = t650 + t652;
-    t642 = np.sin(var1[8]);
-    t663 = 0. + t617;
-    t676 = -1.*t622*t160;
-    t677 = -1.*t186*t625;
-    t680 = t676 + t677;
-    t620 = t153*t619;
-    t634 = -1.*t632*t633;
-    t690 = t620 + t634;
-    t91 = -0.21935*t48*t88;
-    t655 = 0. + t622;
-    t717 = t60*t32*t48*t622;
-    t718 = t32*t48*t51*t630;
-    t721 = t717 + t718;
-    t724 = t619*t721;
-    t725 = -1.*t48*t88*t633;
-    t726 = t724 + t725;
-    t304 = -0.21935*t32*t158;
-    t753 = t622*t321;
-    t754 = t309*t630;
-    t755 = t753 + t754;
-    t756 = t619*t755;
-    t757 = -1.*t32*t158*t633;
-    t758 = t756 + t757;
-    t778 = t622*t400;
-    t779 = t426*t630;
-    t780 = 0. + t778 + t779;
-    t794 = t622*t309;
-    t795 = t400*t630;
-    t796 = t794 + t795;
-    t818 = -1.*t622*t426;
-    t819 = -1.*t400*t625;
-    t820 = t818 + t819;
-    t777 = t619*t449;
-    t782 = -1.*t780*t633;
-    t836 = t777 + t782;
-    t363 = -0.21935*t88*t158;
-    t861 = t60*t32*t622*t158;
-    t862 = t32*t51*t158*t630;
-    t863 = t861 + t862;
-    t864 = t619*t863;
-    t867 = -1.*t88*t158*t633;
-    t869 = t864 + t867;
-    t468 = 0.21935*t32*t48;
-    t888 = t624 + t631;
-    t889 = t619*t888;
-    t890 = t32*t48*t633;
-    t891 = t889 + t890;
-    t919 = t60*t32*t622;
-    t920 = t32*t51*t630;
-    t921 = 0. + t919 + t920;
-    t936 = -1.*t32*t622*t51;
-    t937 = t60*t32*t630;
-    t938 = t936 + t937;
-    t945 = -1.*t32*t51*t625;
-    t960 = -1.*t60*t32*t625;
-    t961 = t936 + t960;
-    t913 = t619*t556;
-    t922 = -1.*t921*t633;
-    t978 = t913 + t922;
-    t588 = -0.21935*t32;
-    t998 = -1.*t60*t622*t88;
-    t999 = -1.*t51*t88*t630;
-    t1000 = t998 + t999;
-    t1001 = t619*t1000;
-    t1002 = -1.*t32*t633;
-    t1003 = t1001 + t1002;
-    t58 = 0.0875*t32*t48*t51;
-    t1024 = np.cos(var1[15]);
-    t1022 = np.sin(var1[15]);
-    t1049 = np.sin(var1[16]);
-    t1036 = t1024*t60*t32*t48;
-    t1037 = -1.*t1022;
-    t1038 = 0. + t1037;
-    t1039 = t32*t48*t1038*t51;
-    t1043 = t1036 + t1039;
-    t1035 = np.cos(var1[16]);
-    t1047 = t1035*t1043;
-    t1050 = -1.*t48*t1049*t88;
-    t1051 = t1047 + t1050;
-    t1053 = np.sin(var1[17]);
-    t1063 = np.cos(var1[17]);
-    t1074 = t1038*t160;
-    t1078 = t1024*t186;
-    t1079 = 0. + t1074 + t1078;
-    t212 = 0.0875*t186;
-    t1025 = 0. + t1024;
-    t1064 = 0. + t1063;
-    t1096 = t1024*t219;
-    t1097 = t1038*t186;
-    t1098 = t1096 + t1097;
-    t1112 = -1.*t1024*t160;
-    t1113 = -1.*t1022*t186;
-    t1114 = t1112 + t1113;
-    t1083 = t1035*t153;
-    t1084 = -1.*t1049*t1079;
-    t1122 = t1083 + t1084;
-    t312 = 0.0875*t309;
-    t1138 = -1.*t32*t1049*t158;
-    t1139 = t1024*t321;
-    t1140 = t1038*t309;
-    t1141 = t1139 + t1140;
-    t1145 = t1035*t1141;
-    t1146 = t1138 + t1145;
-    t362 = 0.0875*t32*t51*t158;
-    t1169 = -1.*t1049*t88*t158;
-    t1170 = t1024*t60*t32*t158;
-    t1171 = t32*t1038*t51*t158;
-    t1172 = t1170 + t1171;
-    t1173 = t1035*t1172;
-    t1174 = t1169 + t1173;
-    t401 = 0.0875*t400;
-    t1188 = t1038*t400;
-    t1189 = t1024*t309;
-    t1193 = t1188 + t1189;
-    t1208 = -1.*t1022*t400;
-    t1209 = -1.*t1024*t426;
-    t1210 = t1208 + t1209;
-    t1212 = t1024*t400;
-    t1223 = t1038*t426;
-    t1224 = 0. + t1212 + t1223;
-    t469 = 0.0875*t160;
-    t1239 = t32*t48*t1049;
-    t1240 = t1074 + t1078;
-    t1241 = t1035*t1240;
-    t1242 = t1239 + t1241;
-    t1228 = t1035*t449;
-    t1229 = -1.*t1049*t1224;
-    t1260 = t1228 + t1229;
-    t515 = 0.0875*t60*t32;
-    t1274 = t60*t32*t1038;
-    t1275 = -1.*t1024*t32*t51;
-    t1276 = t1274 + t1275;
-    t1282 = -1.*t32*t1022*t51;
-    t1294 = -1.*t60*t32*t1022;
-    t1295 = t1294 + t1275;
-    t1297 = t1024*t60*t32;
-    t1309 = t32*t1038*t51;
-    t1310 = 0. + t1297 + t1309;
-    t1311 = -1.*t1049*t1310;
-    t1312 = t1035*t556;
-    t1313 = t1311 + t1312;
-    t589 = -0.0875*t51*t88;
-    t1337 = -1.*t32*t1049;
-    t1338 = -1.*t1024*t60*t88;
-    t1339 = -1.*t1038*t51*t88;
-    t1340 = t1338 + t1339;
-    t1341 = t1035*t1340;
-    t1342 = t1337 + t1341;
-    t712 = -0.0875*t32*t48*t51;
-    t1031 = 0.21935*t48*t88;
-    t1356 = np.cos(var1[12]);
-    t1354 = np.sin(var1[12]);
-    t1368 = np.sin(var1[13]);
-    t1362 = t1356*t60*t32*t48;
-    t1363 = -1.*t1354;
-    t1364 = 0. + t1363;
-    t1365 = t32*t48*t1364*t51;
-    t1366 = t1362 + t1365;
-    t1361 = np.cos(var1[13]);
-    t1367 = t1361*t1366;
-    t1369 = -1.*t48*t1368*t88;
-    t1370 = t1367 + t1369;
-    t1372 = np.sin(var1[14]);
-    t1377 = np.cos(var1[14]);
-    t1385 = t1364*t160;
-    t1386 = t1356*t186;
-    t1387 = 0. + t1385 + t1386;
-    t648 = -0.0875*t186;
-    t1357 = 0. + t1356;
-    t1378 = 0. + t1377;
-    t1401 = t1356*t219;
-    t1402 = t1364*t186;
-    t1403 = t1401 + t1402;
-    t1414 = -1.*t1356*t160;
-    t1415 = -1.*t1354*t186;
-    t1416 = t1414 + t1415;
-    t1391 = t1361*t153;
-    t1392 = -1.*t1368*t1387;
-    t1424 = t1391 + t1392;
-    t1133 = 0.21935*t32*t158;
-    t744 = -0.0875*t309;
-    t1439 = -1.*t32*t1368*t158;
-    t1440 = t1356*t321;
-    t1441 = t1364*t309;
-    t1442 = t1440 + t1441;
-    t1443 = t1361*t1442;
-    t1444 = t1439 + t1443;
-    t850 = -0.0875*t32*t51*t158;
-    t1162 = 0.21935*t88*t158;
-    t1460 = -1.*t1368*t88*t158;
-    t1461 = t1356*t60*t32*t158;
-    t1462 = t32*t1364*t51*t158;
-    t1463 = t1461 + t1462;
-    t1464 = t1361*t1463;
-    t1465 = t1460 + t1464;
-    t793 = -0.0875*t400;
-    t1476 = t1364*t400;
-    t1477 = t1356*t309;
-    t1478 = t1476 + t1477;
-    t1490 = -1.*t1354*t400;
-    t1491 = -1.*t1356*t426;
-    t1492 = t1490 + t1491;
-    t1494 = t1356*t400;
-    t1505 = t1364*t426;
-    t1506 = 0. + t1494 + t1505;
-    t1234 = -0.21935*t32*t48;
-    t883 = -0.0875*t160;
-    t1520 = t32*t48*t1368;
-    t1521 = t1385 + t1386;
-    t1522 = t1361*t1521;
-    t1523 = t1520 + t1522;
-    t1510 = t1361*t449;
-    t1511 = -1.*t1368*t1506;
-    t1534 = t1510 + t1511;
-    t935 = -0.0875*t60*t32;
-    t1546 = t60*t32*t1364;
-    t1547 = -1.*t1356*t32*t51;
-    t1548 = t1546 + t1547;
-    t1551 = -1.*t32*t1354*t51;
-    t1560 = -1.*t60*t32*t1354;
-    t1561 = t1560 + t1547;
-    t1563 = t1356*t60*t32;
-    t1572 = t32*t1364*t51;
-    t1573 = 0. + t1563 + t1572;
-    t1574 = -1.*t1368*t1573;
-    t1575 = t1361*t556;
-    t1576 = t1574 + t1575;
-    t1332 = 0.21935*t32;
-    t993 = 0.0875*t51*t88;
-    t1599 = -1.*t32*t1368;
-    t1600 = -1.*t1356*t60*t88;
-    t1601 = -1.*t1364*t51*t88;
-    t1602 = t1600 + t1601;
-    t1603 = t1361*t1602;
-    t1604 = t1599 + t1603;
-    p_output1 = np.zeros(12)
-    p_output1[0]=var2[0] + (t212 + 0.037*(t219*t62 + t186*t73) - 0.25*t233*t94 - 0.27*(-1.*t118*t127*t233 + t139*t233*t94))*var2[3] + (-0.25*t125 + t58 + 0.037*(t32*t48*t60*t62 + t32*t48*t51*t73) + t91 - 0.27*(t125*t139 + t127*(-1.*t109*t118 - 1.*t48*t88*t94)))*var2[4] + (t304 + t312 - 0.25*t339 + 0.037*(t321*t62 + t309*t73) - 0.27*(t139*t339 + t127*(-1.*t118*t331 - 1.*t158*t32*t94)))*var2[5] + (0.037*(t188 - 1.*t160*t62) - 0.25*t262*t94 - 0.27*(-1.*t118*t127*t262 + t139*t262*t94))*var2[9] + (-0.25*t286 - 0.27*(t139*t286 + t127*(-1.*t118*t153 - 1.*t189*t94)))*var2[10] - 0.27*(t138*(0. + t195 + t200) - 1.*t127*(0. + t118*t153 + t189*t94))*var2[11];
-    p_output1[1]=var2[1] + (t401 + 0.037*(t309*t62 + t400*t73) - 0.25*t405*t94 - 0.27*(-1.*t118*t127*t405 + t139*t405*t94))*var2[3] + (t362 + t363 - 0.25*t376 + 0.037*(t158*t32*t60*t62 + t158*t32*t51*t73) - 0.27*(t139*t376 + t127*(-1.*t118*t373 - 1.*t158*t88*t94)))*var2[4] + (t468 + t469 - 0.25*t480 + 0.037*(t186*t62 + t160*t73) - 0.27*(t139*t480 + t127*(-1.*t118*t478 + t32*t48*t94)))*var2[5] + (0.037*(t432 - 1.*t426*t62) - 0.25*t429*t94 - 0.27*(-1.*t118*t127*t429 + t139*t429*t94))*var2[9] + (-0.25*t497 - 0.27*(t139*t497 + t127*(-1.*t118*t449 - 1.*t452*t94)))*var2[10] - 0.27*(t138*(0. + t462 + t463) - 1.*t127*(0. + t118*t449 + t452*t94))*var2[11];
-    p_output1[2]=var2[2] + (t515 + 0.037*(t521 + t32*t60*t73) - 0.25*t518*t94 - 0.27*(-1.*t118*t127*t518 + t139*t518*t94))*var2[3] + (t588 + t589 - 0.25*t601 + 0.037*(-1.*t60*t62*t88 - 1.*t51*t73*t88) - 0.27*(t139*t601 + t127*(-1.*t118*t597 - 1.*t32*t94)))*var2[4] + (0.037*(t521 + t540) - 0.25*t536*t94 - 0.27*(-1.*t118*t127*t536 + t139*t536*t94))*var2[9] + (-0.25*t562 - 0.27*(t139*t562 + t127*(-1.*t118*t556 - 1.*t550*t94)))*var2[10] - 0.27*(t138*(0. + t553 + t559) - 1.*t127*(0. + t118*t556 + t550*t94))*var2[11];
-    p_output1[3]=var2[0] + (t648 - 0.25*t619*t653 - 0.037*(t219*t625 + t186*t655) - 0.27*(-1.*t633*t642*t653 + t619*t653*t663))*var2[3] + (-0.037*(t32*t48*t60*t625 + t32*t48*t51*t655) + t712 - 0.25*t726 - 0.27*(t663*t726 + t642*(-1.*t633*t721 - 1.*t48*t619*t88)) + t91)*var2[4] + (t304 - 0.037*(t321*t625 + t309*t655) + t744 - 0.25*t758 - 0.27*(t642*(-1.*t158*t32*t619 - 1.*t633*t755) + t663*t758))*var2[5] + (-0.037*(t624 - 1.*t160*t625) - 0.25*t619*t680 - 0.27*(-1.*t633*t642*t680 + t619*t663*t680))*var2[6] + (-0.25*t690 - 0.27*((-1.*t619*t632 - 1.*t153*t633)*t642 + t663*t690))*var2[7] - 0.27*(t617*(0. + t620 + t634) - 1.*(0. + t619*t632 + t153*t633)*t642)*var2[8];
-    p_output1[4]=var2[1] + (-0.037*(t309*t625 + t400*t655) + t793 - 0.25*t619*t796 - 0.27*(-1.*t633*t642*t796 + t619*t663*t796))*var2[3] + (t363 - 0.037*(t158*t32*t60*t625 + t158*t32*t51*t655) + t850 - 0.25*t869 - 0.27*(t663*t869 + t642*(-1.*t633*t863 - 1.*t158*t619*t88)))*var2[4] + (t468 - 0.037*(t186*t625 + t160*t655) + t883 - 0.25*t891 - 0.27*(t642*(t32*t48*t619 - 1.*t633*t888) + t663*t891))*var2[5] + (-0.037*(-1.*t426*t625 + t778) - 0.25*t619*t820 - 0.27*(-1.*t633*t642*t820 + t619*t663*t820))*var2[6] + (-0.25*t836 - 0.27*(t642*(-1.*t449*t633 - 1.*t619*t780) + t663*t836))*var2[7] - 0.27*(-1.*t642*(0. + t449*t633 + t619*t780) + t617*(0. + t777 + t782))*var2[8];
-    p_output1[5]=var2[2] + (t935 - 0.25*t619*t938 - 0.27*(-1.*t633*t642*t938 + t619*t663*t938) - 0.037*(t32*t60*t655 + t945))*var2[3] + (-0.25*t1003 + t588 - 0.27*((-1.*t32*t619 - 1.*t1000*t633)*t642 + t1003*t663) - 0.037*(-1.*t60*t625*t88 - 1.*t51*t655*t88) + t993)*var2[4] + (-0.037*(t919 + t945) - 0.25*t619*t961 - 0.27*(-1.*t633*t642*t961 + t619*t663*t961))*var2[6] + (-0.25*t978 - 0.27*(t642*(-1.*t556*t633 - 1.*t619*t921) + t663*t978))*var2[7] - 0.27*(-1.*t642*(0. + t556*t633 + t619*t921) + t617*(0. + t913 + t922))*var2[8];
-    p_output1[6]=var2[0] + (-0.25*t1035*t1098 - 0.27*(-1.*t1049*t1053*t1098 + t1035*t1064*t1098) + t212 + 0.037*(t1025*t186 + t1022*t219))*var2[3] + (t1031 - 0.25*t1051 + t58 + 0.037*(t1025*t32*t48*t51 + t1022*t32*t48*t60) - 0.27*(t1051*t1064 + t1053*(-1.*t1043*t1049 - 1.*t1035*t48*t88)))*var2[4] + (t1133 - 0.25*t1146 + t312 - 0.27*(t1064*t1146 + t1053*(-1.*t1049*t1141 - 1.*t1035*t158*t32)) + 0.037*(t1025*t309 + t1022*t321))*var2[5] + (-0.25*t1035*t1114 - 0.27*(-1.*t1049*t1053*t1114 + t1035*t1064*t1114) + 0.037*(t1078 - 1.*t1022*t160))*var2[15] + (-0.25*t1122 - 0.27*(t1064*t1122 + t1053*(-1.*t1035*t1079 - 1.*t1049*t153)))*var2[16] - 0.27*(t1063*(0. + t1083 + t1084) - 1.*t1053*(0. + t1035*t1079 + t1049*t153))*var2[17];
-    p_output1[7]=var2[1] + (-0.25*t1035*t1193 - 0.27*(-1.*t1049*t1053*t1193 + t1035*t1064*t1193) + 0.037*(t1022*t309 + t1025*t400) + t401)*var2[3] + (t1162 - 0.25*t1174 + t362 + 0.037*(t1025*t158*t32*t51 + t1022*t158*t32*t60) - 0.27*(t1064*t1174 + t1053*(-1.*t1049*t1172 - 1.*t1035*t158*t88)))*var2[4] + (t1234 - 0.25*t1242 + 0.037*(t1025*t160 + t1022*t186) + t469 - 0.27*(t1064*t1242 + t1053*(-1.*t1049*t1240 + t1035*t32*t48)))*var2[5] + (-0.25*t1035*t1210 - 0.27*(-1.*t1049*t1053*t1210 + t1035*t1064*t1210) + 0.037*(t1212 - 1.*t1022*t426))*var2[15] + (-0.25*t1260 - 0.27*(t1064*t1260 + t1053*(-1.*t1035*t1224 - 1.*t1049*t449)))*var2[16] - 0.27*(t1063*(0. + t1228 + t1229) - 1.*t1053*(0. + t1035*t1224 + t1049*t449))*var2[17];
-    p_output1[8]=var2[2] + (-0.25*t1035*t1276 - 0.27*(-1.*t1049*t1053*t1276 + t1035*t1064*t1276) + t515 + 0.037*(t1282 + t1025*t32*t60))*var2[3] + (t1332 - 0.25*t1342 - 0.27*(t1064*t1342 + t1053*(-1.*t1049*t1340 - 1.*t1035*t32)) + t589 + 0.037*(-1.*t1025*t51*t88 - 1.*t1022*t60*t88))*var2[4] + (-0.25*t1035*t1295 - 0.27*(-1.*t1049*t1053*t1295 + t1035*t1064*t1295) + 0.037*(t1282 + t1297))*var2[15] + (-0.25*t1313 - 0.27*(t1064*t1313 + t1053*(-1.*t1035*t1310 - 1.*t1049*t556)))*var2[16] - 0.27*(t1063*(0. + t1311 + t1312) - 1.*t1053*(0. + t1035*t1310 + t1049*t556))*var2[17];
-    p_output1[9]=var2[0] + (-0.25*t1361*t1403 - 0.27*(-1.*t1368*t1372*t1403 + t1361*t1378*t1403) - 0.037*(t1357*t186 + t1354*t219) + t648)*var2[3] + (t1031 - 0.25*t1370 - 0.037*(t1357*t32*t48*t51 + t1354*t32*t48*t60) + t712 - 0.27*(t1370*t1378 + t1372*(-1.*t1366*t1368 - 1.*t1361*t48*t88)))*var2[4] + (t1133 - 0.25*t1444 - 0.27*(t1378*t1444 + t1372*(-1.*t1368*t1442 - 1.*t1361*t158*t32)) - 0.037*(t1357*t309 + t1354*t321) + t744)*var2[5] + (-0.25*t1361*t1416 - 0.27*(-1.*t1368*t1372*t1416 + t1361*t1378*t1416) - 0.037*(t1386 - 1.*t1354*t160))*var2[12] + (-0.25*t1424 - 0.27*(t1378*t1424 + t1372*(-1.*t1361*t1387 - 1.*t1368*t153)))*var2[13] - 0.27*(t1377*(0. + t1391 + t1392) - 1.*t1372*(0. + t1361*t1387 + t1368*t153))*var2[14];
-    p_output1[10]=var2[1] + (-0.25*t1361*t1478 - 0.27*(-1.*t1368*t1372*t1478 + t1361*t1378*t1478) - 0.037*(t1354*t309 + t1357*t400) + t793)*var2[3] + (t1162 - 0.25*t1465 - 0.037*(t1357*t158*t32*t51 + t1354*t158*t32*t60) + t850 - 0.27*(t1378*t1465 + t1372*(-1.*t1368*t1463 - 1.*t1361*t158*t88)))*var2[4] + (t1234 - 0.25*t1523 - 0.037*(t1357*t160 + t1354*t186) - 0.27*(t1378*t1523 + t1372*(-1.*t1368*t1521 + t1361*t32*t48)) + t883)*var2[5] + (-0.25*t1361*t1492 - 0.27*(-1.*t1368*t1372*t1492 + t1361*t1378*t1492) - 0.037*(t1494 - 1.*t1354*t426))*var2[12] + (-0.25*t1534 - 0.27*(t1378*t1534 + t1372*(-1.*t1361*t1506 - 1.*t1368*t449)))*var2[13] - 0.27*(t1377*(0. + t1510 + t1511) - 1.*t1372*(0. + t1361*t1506 + t1368*t449))*var2[14];
-    p_output1[11]=var2[2] + (-0.25*t1361*t1548 - 0.27*(-1.*t1368*t1372*t1548 + t1361*t1378*t1548) - 0.037*(t1551 + t1357*t32*t60) + t935)*var2[3] + (t1332 - 0.25*t1604 - 0.27*(t1378*t1604 + t1372*(-1.*t1368*t1602 - 1.*t1361*t32)) - 0.037*(-1.*t1357*t51*t88 - 1.*t1354*t60*t88) + t993)*var2[4] + (-0.25*t1361*t1561 - 0.27*(-1.*t1368*t1372*t1561 + t1361*t1378*t1561) - 0.037*(t1551 + t1563))*var2[12] + (-0.25*t1576 - 0.27*(t1378*t1576 + t1372*(-1.*t1361*t1573 - 1.*t1368*t556)))*var2[13] - 0.27*(t1377*(0. + t1574 + t1575) - 1.*t1372*(0. + t1361*t1573 + t1368*t556))*var2[14];
-    return p_output1
+    R[1,0] = 2*(q[1]*q[2]+q[3]*q[0])
+    R[1,1] = 1-2*(q[1]**2+q[3]**2)
+    R[1,2] = 2*(q[2]*q[3]-q[1]*q[0])
+
+    R[2,0] = 2*(q[1]*q[3]-q[2]*q[0])
+    R[2,1] = 2*(q[2]*q[3]+q[1]*q[0])
+    R[2,2] = 1-2*(q[1]**2+q[2]**2)
+
+    return R
+
+
+
+def EKF(xhat,T,process_input,z_measurement,P):
+    g = np.array([0,0,-9.81])
+    C = np.array([[0,0,0,1,0,0,0,0,0,0],
+                 [0,0,0,0,1,0,0,0,0,0],
+                 [0,0,0,0,0,1,0,0,0,0]])
+    Q = 0.001*np.eye(10)
+    R = 0.05*np.eye(3)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process(xhat,para)
+    F = j_EKF_process(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### update
+    y = z_measurement-np.dot(C,xhat)
+    S=np.dot(C,np.dot(P,C.T))+R
+    K = np.dot(P,np.dot(C.T,np.linalg.inv(S)))
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,C)),P)
+    #####################################
+    xhat[6:10]=xhat[6:10]/np.linalg.norm(xhat[6:10])
+    return xhat,P
+
+def EKFWithLegEncoder(xhat,T,process_input,z_measurement,P,contacts):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_velocity = 0.01
+    sensor_noise_foot_position = 0.01
+
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(12)
+    R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+
+    #####################################
+    #print('******************************')
+    #print('standard EKF')
+    #print(xhat)
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg(xhat)
+    #pdb.set_trace()
+    H = j_measurement_model_leg(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    #print(y)
+    #print(K)
+    #print(xhat)
+    #print('******************************')
+    return xhat,P
+def linearObserver(xhat,T,process_input,z_measurement,contacts):
+    g = np.array([0,0,-9.81])
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+
+    y = z_measurement-measurement_model_leg(xhat)
+    A = j_EKF_process_leg(xhat,para)
+    C = j_measurement_model_leg(xhat)
+    L = np.ones([22,12])
+    xhat = EKF_process_leg(xhat,para) + np.dot(L,y)
+    return xhat
+def EKFWithLegEncoderPosition(xhat,T,process_input,z_measurement,P,contacts):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_velocity = 0.001
+    sensor_noise_position = 0.001
+    sensor_noise_foot_position = 0.001
+
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(15)
+    R[0:3,0:3] = sensor_noise_position* np.identity(3)
+    R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+    #print('******************************')
+    #print('standard EKF')
+    #print(xhat)
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg_position(xhat)
+    #print(y)
+    #pdb.set_trace()
+    H = j_measurement_model_leg_position(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    #print(y)
+    #print(K)
+    #print(xhat)
+    #print('******************************')
+    return xhat,P
+
+def EKFWithLegEncoderVelocity(xhat,T,process_input,z_measurement,P,contacts):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.01
+
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    R = np.eye(15)
+    R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = 0.01* np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg_velocity(xhat)
+    H = j_measurement_model_leg_velocity(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    return xhat,P
+
+
+
+def EKFWithLegEncoderImpactPosition(xhat,T,process_input,z_measurement,P,contacts,touch_down,full_body_dynamic_state):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_position = 0.001
+    sensor_noise_foot_position = 0.001
+    if touch_down == 1:
+        print('touch down')
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    R = np.eye(15)
+    R[0:3,0:3] = sensor_noise_position * np.identity(3)
+    R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    #R = np.eye(12)
+    #R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+    #print('******************************')
+    #print('impact-aware EKF')
+    #print(xhat)
+    #####################################
+    #### impact
+    if touch_down == 1:
+        q_full_body_estimation = full_body_dynamic_state[0]
+        dq_full_body_estimation = full_body_dynamic_state[1]
+        print(q_full_body_estimation.shape)
+        print(dq_full_body_estimation.shape)
+        dq_plus = resetMap(q_full_body_estimation,dq_full_body_estimation,1)
+        #dq_plus = dq_full_body
+        xhat[3:6] = dq_plus[0:3]
+        #pdb.set_trace()
+    #####################################
+
+
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg_position(xhat)
+    H = j_measurement_model_leg_position(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    #print(y)
+    #print(K)
+    #print(xhat)
+    #print('******************************')
+    return xhat,P
+def EKFWithLegEncoderGroundTruthImpact(xhat,T,process_input,z_measurement,P,contacts,touch_down,dq_plus):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.1
+    if touch_down == 1:
+        pass
+        #print('touch down')
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(12)
+    R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### impact
+    if touch_down == 1:
+        xhat[3:6] = dq_plus[0:3]
+    #####################################
+
+
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg(xhat)
+    H = j_measurement_model_leg(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    return xhat,P
+def EKFWithLegEncoderImpact(xhat,T,process_input,z_measurement,P,contacts,touch_down,full_body_dynamic_state):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.1
+    if touch_down == 1:
+        print('touch down')
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(12)
+    R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### impact
+    if touch_down == 1:
+        q_full_body_estimation = full_body_dynamic_state[0]
+        dq_full_body_estimation = full_body_dynamic_state[1]
+        #print(q_full_body_estimation.shape)
+        #print(dq_full_body_estimation.shape)
+        dq_plus = resetMap(q_full_body_estimation,dq_full_body_estimation,1)
+        #dq_plus = dq_full_body
+        xhat[3:6] = dq_plus[0:3]
+    #####################################
+
+
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg(xhat)
+    H = j_measurement_model_leg(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    return xhat,P
+
+def EKFWithLegEncoderBias(xhat,T,process_input,z_measurement,P,contacts):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.01
+    process_noise_vimu = 0.01
+    process_noise_p_qua = 0.01
+    process_noise_p_bias = 0.00000001
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.01
+
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(28)
+    Q[0:3,0:3] = process_noise_pimu * np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu * np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL * np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR * np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL * np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR * np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua * np.identity(4)
+    Q[22:28,22:28] = process_noise_p_bias * np.identity(6)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(12)
+    R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg_bias(xhat,para)
+    F = j_EKF_process_leg_bias(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg_bias(xhat)
+    H = j_measurement_model_leg_bias(xhat)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+    xixi = np.dot(K,y)
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(len(xhat))-np.dot(K,H)),P)
+    #####################################
+    xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    return xhat,P
+
+def EKFWithLegEncoderRotVec(xhat,T,process_input,z_measurement,P,contacts):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.01
+    process_noise_vimu = 0.01
+    process_noise_p_qua = 0.01
+
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.01
+
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(21)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:21,18:21] = process_noise_p_qua *  np.identity(3)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(12)
+    R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    quat_ = xhat[18:22]
+    quat = Rot.from_quat([quat_[1],quat_[2],quat_[3],quat_[0]])
+    rotvec = quat.as_rotvec()
+    xhat_error = np.concatenate((xhat[0:18],rotvec),axis = 0)
+
+
+
+    F = j_EKF_process_error_dynamics(xhat_error,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### update
+    y = z_measurement-measurement_model_leg_rotvec(xhat_error)
+    H = j_measurement_model_leg_rotvec(xhat_error)
+    S = np.dot(H,np.dot(P,H.T))+R
+    K = np.dot(P,np.dot(H.T,np.linalg.inv(S)))
+
+    #print('xixi')
+    #print(np.linalg.norm(xixi[18:22]))
+    delta_xhat = np.dot(K,y)
+    #delta_xhat[18:22] = delta_xhat[18:22]/np.linalg.norm(delta_xhat[18:22])
+    #xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    #xhat[18:22] = quaternionMultiplication(xhat[18:22] ,delta_xhat[18:22])
+    xhat[0:18] = xhat[0:18]+delta_xhat[0:18]
+    delta_rotvec = Rot.from_rotvec(delta_xhat[18:21])
+    delta_rotvec_ = delta_rotvec.as_rotvec()
+    delta_rotvec_norm = np.linalg.norm(delta_rotvec_)
+    #print(type(delta_rotvec_))
+    delta_quat_paper = np.concatenate((np.array([np.cos(0.5*delta_rotvec_norm)]),np.sin(0.5*delta_rotvec_norm)*delta_rotvec_/delta_rotvec_norm),axis=0)
+    delta_quat_ = delta_rotvec.as_quat()
+    delta_quat = np.array([delta_quat_[3],delta_quat_[0],delta_quat_[1],delta_quat_[2]])
+    #pdb.set_trace()
+    xhat[18:22] = quaternionMultiplication(delta_quat,xhat[18:22])
+    #xhat = xhat + np.dot(K,y)
+    P = np.dot((np.eye(21)-np.dot(K,H)),P)
+    #####################################
+    #xhat[18:22]=xhat[18:22]/np.linalg.norm(xhat[18:22])
+    return xhat,P
+def ComputePostVelResetMap(xhat,T,process_input,z_measurement,P,contacts,touch_down,full_body_dynamic_state):
+    g = np.array([0,0,-9.81])
+    process_noise_pimu = 0.001
+    process_noise_vimu = 0.001
+    process_noise_p_qua = 0.001
+
+    sensor_noise_velocity = 0.1
+    sensor_noise_foot_position = 0.1
+    if touch_down == 1:
+        pass
+        #print('touch down')
+    if len(contacts[0])==0:
+        process_noise_p_FL = 100000000
+    elif len(contacts[0])!=0:
+        process_noise_p_FL = 0.00001
+
+    if len(contacts[1])==0:
+        process_noise_p_FR = 100000000
+    elif len(contacts[1])!=0:
+        process_noise_p_FR = 0.00001
+
+    if len(contacts[2])==0:
+        process_noise_p_RL = 100000000
+    elif len(contacts[2])!=0:
+        process_noise_p_RL = 0.00001
+
+    if len(contacts[3])==0:
+        process_noise_p_RR = 100000000
+    elif len(contacts[3])!=0:
+        process_noise_p_RR = 0.00001
+
+    Q = np.eye(22)
+    Q[0:3,0:3] = process_noise_pimu *  np.identity(3)
+    Q[3:6,3:6] = process_noise_vimu *  np.identity(3)
+    Q[6:9,6:9] = process_noise_p_FL *  np.identity(3)
+    Q[9:12,9:12] = process_noise_p_FR *  np.identity(3)
+    Q[12:15,12:15] = process_noise_p_RL *  np.identity(3)
+    Q[15:18,15:18] = process_noise_p_RR *  np.identity(3)
+    Q[18:22,18:22] = process_noise_p_qua *  np.identity(4)
+
+    #R = np.eye(15)
+    #R[0:3,0:3] = sensor_noise_velocity * np.identity(3)
+    #R[3:15,3:15] = sensor_noise_foot_position * np.identity(12)
+
+    R = np.eye(12)
+    R[0:12,0:12] = sensor_noise_foot_position * np.identity(12)
+    #####################################
+    #### predict
+    para=np.concatenate((np.array([T]),process_input,g),axis=0)
+    xhat = EKF_process_leg(xhat,para)
+    F = j_EKF_process_leg(xhat,para)
+    P = np.dot(F,np.dot(P,F.T))+Q
+    #####################################
+
+    #####################################
+    #### impact
+    if touch_down == 1:
+        q_full_body_estimation = full_body_dynamic_state[0]
+        dq_full_body_estimation = full_body_dynamic_state[1]
+        #print(q_full_body_estimation.shape)
+        #print(dq_full_body_estimation.shape)
+        dq_plus = resetMap(q_full_body_estimation,dq_full_body_estimation,1)
+        #dq_plus = dq_full_body
+        xhat[3:6] = dq_plus[0:3]
+    #####################################
+
+    return dq_plus
+def reArrangeQuaternion(q):
+    q_o = np.zeros(4)
+    q_o[0]=q[3]
+    q_o[1]=q[0]
+    q_o[2]=q[1]
+    q_o[3]=q[2]
+    return q_o
+def quaternion2EnlerAngles(q):
+    angles = np.zeros(3)
+    angles[0]=np.arctan(2*(q[0]*q[1]+q[2]*q[3])/(1-2*(q[1]**2+q[2]**2)))
+    angles[1]=np.arctan(2*(q[0]*q[2]-q[3]*q[1]))
+    angles[2]=np.arctan(2*(q[0]*q[3]+q[1]*q[2])/(1-2*(q[2]**2+q[3]**2)))
+    return angles
+def quaternionMultiplication(q1,q2):
+    w0, x0, y0, z0 = q1
+    w1, x1, y1, z1 = q2
+    return np.array([-x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0,
+                     x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0,
+                     -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0,
+                     x1 * y0 - y1 * x0 + z1 * w0 + w1 * z0], dtype=np.float64)
+def contactChangeDetection(previous_contacts,contacts):
+    if len(previous_contacts[0]) == len(contacts[0]) and len(previous_contacts[1]) == len(contacts[1]) and len(previous_contacts[2]) == len(contacts[2]) and len(previous_contacts[3]) == len(contacts[3]):
+        contact_change = 0
+    else:
+        contact_change = 1
+    return contact_change
+def contactChangeDetectionSingleLeg(previous_contacts,contacts):
+    if len(previous_contacts[1]) == len(contacts[1]):
+        contact_change = 0
+    else:
+        contact_change = 1
+    return contact_change
+def touchDownDetectionSingleLeg(previous_contacts,contacts):
+
+    if len(contacts[1]) != 0 and len(previous_contacts[1]) == 0:
+        touch_down = 1
+    else:
+        touch_down = 0
+    return touch_down
+def resetMap(q,dq,foot_index):
+    M = laikagoM(q)
+
+    if foot_index == 1:
+        swing_foot_jacobian = impact_jacobian(q)
+    elif foot_index == 2:
+        swing_foot_jacobian = impact_jacobian(q)
+    elif foot_index == 3:
+        swing_foot_jacobian = impact_jacobian(q)
+    elif foot_index == 4:
+        swing_foot_jacobian = impact_jacobian(q)
+    b = np.concatenate((np.dot(M,dq),np.zeros(12)),axis = 0)
+    A = np.zeros([30,30])
+    #print(swing_foot_jacobian.shape)
+    A[0:18,0:18] = M
+    A[0:18,18:30] = -swing_foot_jacobian.T
+    A[18:30,0:18] = swing_foot_jacobian
+    dq_plus_ = np.linalg.solve(A, b)
+    dq_plus = dq_plus_[0:18]
+    return dq_plus
